@@ -1,3 +1,4 @@
+import './fluent-setup';
 import { t, initI18n } from './i18n';
 import { generateSignal } from './signal';
 
@@ -35,7 +36,7 @@ function schedule(date: Date, summer_time: boolean): number[] {
 }
 
 let intervalId: ReturnType<typeof setTimeout> | null;
-const summer_time_input = document.getElementById("summer-time") as HTMLInputElement;
+const summer_time_input = document.getElementById("summer-time") as HTMLElement & { checked: boolean };
 
 function start(): void {
     ctx = new AudioCtx();

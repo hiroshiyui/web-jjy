@@ -1,0 +1,156 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #1b1b1b;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.app-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.app-header fluent-select {
+  min-width: 140px;
+}
+
+/* Intro paragraph */
+.intro-text {
+  margin: 0 0 16px;
+  color: #b0b0b0;
+  font-size: 0.9rem;
+}
+
+/* Cards */
+fluent-card {
+  display: block;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+/* Control row: button + time + switch */
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.control-row fluent-button {
+  min-width: 100px;
+}
+
+#time {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+  flex: 1;
+}
+
+.summer-time-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #b0b0b0;
+  white-space: nowrap;
+}
+
+/* Canvas sections */
+.canvas-wrapper {
+  overflow: hidden;
+}
+
+.canvas-wrapper canvas {
+  width: 100%;
+  display: block;
+}
+
+.card-heading {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Divider */
+fluent-divider {
+  margin: 20px 0;
+}
+
+/* Accordion */
+fluent-accordion {
+  margin-bottom: 24px;
+}
+
+fluent-accordion-item {
+  --neutral-stroke-rest: #333;
+}
+
+fluent-accordion-item p {
+  margin: 4px 0 8px;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+  line-height: 1.6;
+}
+
+fluent-accordion-item ul {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+}
+
+fluent-accordion-item a {
+  color: #4fc3f7;
+}
+
+fluent-accordion-item a:hover {
+  color: #81d4fa;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .app-container {
+    padding: 12px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .app-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .control-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #time {
+    text-align: center;
+  }
+}

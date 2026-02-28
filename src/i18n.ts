@@ -55,7 +55,7 @@ export function initI18n(): void {
 
     applyTranslations();
 
-    const select = document.getElementById('lang-select') as HTMLSelectElement | null;
+    const select = document.getElementById('lang-select') as (HTMLElement & { value: string }) | null;
     if (select) {
         select.value = currentLocale;
         select.addEventListener('change', () => {
