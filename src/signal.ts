@@ -1,4 +1,4 @@
-// Pure JJY signal generation — no DOM or Web Audio dependencies
+// JJY信号生成 — DOM・Web Audio非依存の純粋関数
 
 export function toJSTDate(date: Date): Date {
     const JST_OFFSET_MIN = 9 * 60;
@@ -43,7 +43,7 @@ export function getleapsecond(): number {
     return 0;
 }
 
-// Pure function: returns 60-element array of durations (0.2, 0.5, or 0.8)
+// 純粋関数: 60要素の持続時間配列(0.2, 0.5, 0.8)を返す
 export function generateSignal(date: Date, summer_time: boolean): number[] {
     let minute = date.getMinutes();
     let hour = date.getHours();

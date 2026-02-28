@@ -28,11 +28,10 @@ describe('setLocale()', () => {
 
     it('falls back to Japanese for keys missing in zh-TW', () => {
         setLocale('zh-TW');
-        // All standard keys exist in zh-TW, so test the fallback chain:
+        // zh-TWには全標準キーが存在するため、フォールバックチェーンをテスト:
         // locales['zh-TW'][key] ?? locales['ja'][key] ?? key
-        // A key that exists in ja but hypothetically not in zh-TW
-        // would fall through. We verify the chain works by checking
-        // that an unknown key still returns itself.
+        // jaにあってzh-TWにない仮想的なキーはフォールスルーする。
+        // 未知のキーがそのまま返されることでチェーンの動作を検証する。
         expect(t('nonexistent_key' as LocaleKey)).toBe('nonexistent_key');
     });
 

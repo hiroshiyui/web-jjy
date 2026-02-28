@@ -18,7 +18,7 @@ const BAR_TOP_PAD = 16;
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 
-// --- AudioEngine ---
+// --- オーディオエンジン ---
 
 interface AudioEngine {
     readonly isPlaying: boolean;
@@ -117,7 +117,7 @@ function createAudioEngine(
     };
 }
 
-// --- OscillogramRenderer ---
+// --- オシロスコープ描画 ---
 
 const OSC_SECONDS = 10;
 const OSC_PAD = 10;
@@ -146,12 +146,12 @@ function createOscillogramRenderer(canvas: HTMLCanvasElement): OscillogramRender
     }
 
     function render(analyser: AnalyserNode | null): void {
-        // Background
+        // 背景
         oscCtx.fillStyle = '#111';
         oscCtx.fillRect(0, 0, oscW, oscH);
 
         if (!analyser) {
-            // Stopped: flat green center line
+            // 停止中: 緑の中央線を表示
             oscCtx.strokeStyle = '#00FF00';
             oscCtx.lineWidth = 2;
             oscCtx.beginPath();
@@ -162,7 +162,7 @@ function createOscillogramRenderer(canvas: HTMLCanvasElement): OscillogramRender
             return;
         }
 
-        // Time delta
+        // 経過時間
         const now = performance.now();
         if (lastTime === 0) {
             lastTime = now;
@@ -171,12 +171,12 @@ function createOscillogramRenderer(canvas: HTMLCanvasElement): OscillogramRender
         const dt = now - lastTime;
         lastTime = now;
 
-        // Pixel advance with sub-pixel accumulation
+        // サブピクセル累積によるピクセル進行
         const advance = (dt / 1000) * pixelsPerSec + subPixel;
         const steps = Math.floor(advance);
         subPixel = advance - steps;
 
-        // Peak amplitude from time-domain data
+        // 時間領域データからピーク振幅を取得
         analyser.getByteTimeDomainData(timeDomain);
         let peak = 0;
         for (let i = 0; i < timeDomain.length; i++) {
@@ -184,19 +184,19 @@ function createOscillogramRenderer(canvas: HTMLCanvasElement): OscillogramRender
             if (v > peak) peak = v;
         }
 
-        // Write into ring buffer
+        // リングバッファに書き込み
         for (let s = 0; s < steps; s++) {
             envelope[head] = peak;
             head = (head + 1) % oscW;
         }
 
-        // Compute time offset for grid alignment
-        // The rightmost pixel represents "now"
+        // グリッド位置合わせ用の時間オフセットを計算
+        // 右端のピクセルが「現在」を表す
         const nowSec = Date.now() / 1000;
         const fractionalSec = nowSec % 1;
         const fractionalPixels = fractionalSec * pixelsPerSec;
 
-        // Draw vertical grid lines every second
+        // 1秒ごとの縦グリッド線を描画
         oscCtx.strokeStyle = '#333';
         oscCtx.lineWidth = 1;
         oscCtx.font = '10px monospace';
@@ -209,23 +209,23 @@ function createOscillogramRenderer(canvas: HTMLCanvasElement): OscillogramRender
             oscCtx.moveTo(x, 0);
             oscCtx.lineTo(x, oscH);
             oscCtx.stroke();
-            // Second label
+            // 秒ラベル
             const secLabel = ((nowSecOfMinute - i) % 60 + 60) % 60;
             oscCtx.fillText(':' + (secLabel < 10 ? '0' : '') + secLabel, x + 3, oscH - 3);
         }
 
-        // Horizontal center reference line
+        // 水平中央の基準線
         oscCtx.strokeStyle = '#333';
         oscCtx.beginPath();
         oscCtx.moveTo(0, oscH / 2);
         oscCtx.lineTo(oscW, oscH / 2);
         oscCtx.stroke();
 
-        // Draw envelope line (oldest to newest, right edge is newest)
+        // エンベロープ線を描画(古い順に左から右、右端が最新)
         oscCtx.strokeStyle = '#00FF00';
         oscCtx.lineWidth = 2;
         oscCtx.beginPath();
-        const startIdx = head; // oldest sample
+        const startIdx = head; // 最古のサンプル
         for (let i = 0; i < oscW; i++) {
             const idx = (startIdx + i) % oscW;
             const amp = envelope[idx];
@@ -239,7 +239,7 @@ function createOscillogramRenderer(canvas: HTMLCanvasElement): OscillogramRender
         }
         oscCtx.stroke();
 
-        // Filled area under curve
+        // 曲線下の塗りつぶし
         oscCtx.lineTo(oscW, oscH - OSC_PAD);
         oscCtx.lineTo(-subPixel, oscH - OSC_PAD);
         oscCtx.closePath();
@@ -250,7 +250,7 @@ function createOscillogramRenderer(canvas: HTMLCanvasElement): OscillogramRender
     return { reset, render };
 }
 
-// --- Frame labels ---
+// --- フレームラベル ---
 
 function getWeekdayNames(): string[] {
     return [
@@ -284,7 +284,7 @@ function getFrameGroups(): { start: number; end: number; label: string }[] {
     ];
 }
 
-// --- Main wiring ---
+// --- メイン配線 ---
 
 const summer_time_input = document.getElementById("summer-time") as HTMLElement & { checked: boolean };
 const jst_mode_input = document.getElementById("jst-mode") as HTMLElement & { checked: boolean };
@@ -298,7 +298,7 @@ const h = canvas.height;
 const oscCanvas = document.getElementById('oscillogram') as HTMLCanvasElement;
 const oscRenderer = createOscillogramRenderer(oscCanvas);
 
-// Cache decoded signal (signal changes once per minute, render runs at 60fps)
+// デコード済み信号のキャッシュ(信号は毎分1回変更、描画は60fps)
 let lastSignalRef: number[] | undefined;
 let decodedSignal: DecodedSignal | undefined;
 
@@ -334,7 +334,7 @@ function restart(): void {
 jst_mode_input.addEventListener('change', restart);
 summer_time_input.addEventListener('change', restart);
 
-// --- Render loop ---
+// --- 描画ループ ---
 
 render();
 function render(): void {
@@ -369,7 +369,7 @@ function render(): void {
             ctx2d.fillRect((i % BARS_PER_ROW) * BAR_PX, barY, BAR_PX * signal[i], BAR_H);
         }
 
-        // Group labels
+        // グループラベル
         ctx2d.font = '10px sans-serif';
         ctx2d.fillStyle = '#aaa';
         ctx2d.textAlign = 'center';
@@ -383,7 +383,7 @@ function render(): void {
             ctx2d.fillText(g.label, centerX, labelY);
         }
 
-        // Position indices
+        // 位置インデックス
         ctx2d.font = '8px monospace';
         ctx2d.fillStyle = '#666';
         for (let i = 0; i < 60; i++) {
@@ -393,7 +393,7 @@ function render(): void {
             ctx2d.fillText(String(i), x, indexY);
         }
 
-        // Decoded summary (cached)
+        // デコード結果の要約(キャッシュ済み)
         if (signal !== lastSignalRef) {
             lastSignalRef = signal;
             decodedSignal = decodeSignal(signal);

@@ -25,8 +25,8 @@ provideFluentDesignSystem().register(
     fluentDivider()
 );
 
-// Dark theme
+// ダークテーマ
 baseLayerLuminance.withDefault(StandardLuminance.DarkMode);
 
-// Green accent to match oscillogram
+// オシロスコープに合わせた緑のアクセントカラー
 accentBaseColor.withDefault(SwatchRGB.create(0, 0.8, 0.2));
