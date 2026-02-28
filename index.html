@@ -1,60 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
   <head>
-    <title>Web JJY</title>
+    <title data-i18n="title">Web JJY</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
       canvas {
         width: 100%;
       }
+      #lang-select {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
     </style>
   </head>
   <body>
-    <h1>JJYシミュレータWeb版</h1>
-    <p>
+    <select id="lang-select">
+      <option value="ja">日本語</option>
+      <option value="zh-TW">繁體中文</option>
+    </select>
+    <h1 data-i18n="h1">JJYシミュレータWeb版</h1>
+    <p data-i18n="p_intro">
       Web Audioを駆使して標準電波JJYの信号を再現します。
       以下の「Start」ボタンを押すと信号の送信が始まります。
     </p>
 
-    <button id="control-button">Start</button> <span id="time"></span>
+    <button id="control-button" data-i18n="btn_start">Start</button> <span id="time"></span>
     <div>
       <canvas id="canvas" width="1000" height="200"></canvas>
     </div>
-    <label><input id="summer-time" type="checkbox">夏時間を有効にする</label>
+    <label><input id="summer-time" type="checkbox"><span data-i18n="label_summer_time">夏時間を有効にする</span></label>
     <script src="jjy.js"></script>
 
-    <h2>このソフトについて</h2>
-    <p>
+    <h2 data-i18n="h2_about">このソフトについて</h2>
+    <p data-i18n-html="p_about">
       電波時計の時刻合わせには、<a href="http://jjy.nict.go.jp/jjy/">標準電波JJY</a>と呼ばれる
       時刻に関する情報を送信している電波が使われています。
       このシミュレータは、この電波をブラウザ上で再現し、標準電波が届かない環境でも電波時計の時刻合わせを可能にします。
     </p>
 
-    <h2>使い方</h2>
-    <p>
+    <h2 data-i18n="h2_usage">使い方</h2>
+    <p data-i18n="p_usage1">
       パソコンのイヤホンジャックにアンテナ(普通のイヤホンで十分です)を接続し、電波時計の近くに置きます。
       音量を最大にし、「Start」ボタンを押すと信号が送信されます。
       電波時計を強制受信モードにし、時刻が設定されるのを待ちましょう。
     </p>
-    <p>
+    <p data-i18n="p_usage2">
       このページではパソコン自体の時刻を調整する機能はないので、
       事前にNTPでパソコン自体の時刻設定を行っておくといいと思います。
     </p>
 
-    <h2>免責事項</h2>
-    <p>
+    <h2 data-i18n="h2_disclaimer">免責事項</h2>
+    <p data-i18n="p_disclaimer">
       ※ 利用の結果生じた損害について、一切責任を負いません。
     </p>
 
-    <h2>動作環境</h2>
-    <p>MacBook Air + Google Chrome 48.0.2564.116 + CITIZEN 8RZ152 で動作を確認しています。</p>
+    <h2 data-i18n="h2_environment">動作環境</h2>
+    <p data-i18n="p_environment">MacBook Air + Google Chrome 48.0.2564.116 + CITIZEN 8RZ152 で動作を確認しています。</p>
 
-    <h2>原理</h2>
-    <p>
+    <h2 data-i18n="h2_principle">原理</h2>
+    <p data-i18n="p_principle1">
       標準電波は40kHzまたは60kHzの電波です。
       電気が流れればそこには必ず電波が発生するので、イヤホンにこの周波数の信号を音声として流せば、それだけで立派なアンテナになります。
     </p>
-    <p>
+    <p data-i18n-html="p_principle2">
       ただし、一般的な音声アンプは人間の可聴域である20kHz以上の周波数の再生には適していません。
       そこで、歪んだ波形に含まれる高調波を利用します。
       ボリュームを大きくして音が割れた状態になると、音声信号は矩形波に近いかたちになります。
@@ -62,12 +71,12 @@
       詳しくは<a href="http://www.starstonesoft.com/jjy_simulator.htm">フリーソフト電波時計用JJYシミュレータのページ</a>を参照してください。
     </p>
 
-    <h2>ライセンス</h2>
-    <p>MITライセンスで提供します。<a href="https://github.com/shogo82148/web-jjy/blob/gh-pages/LICENSE.md">LICENSE.md<a>を参照してください。</p>    
+    <h2 data-i18n="h2_license">ライセンス</h2>
+    <p data-i18n-html="p_license">MITライセンスで提供します。<a href="https://github.com/shogo82148/web-jjy/blob/gh-pages/LICENSE.md">LICENSE.md</a>を参照してください。</p>
 
-    <h2>関連リンク</h2>
+    <h2 data-i18n="h2_links">関連リンク</h2>
     <p>
-      <ul>
+      <ul data-i18n-html="links_list">
         <li><a href="https://github.com/shogo82148/web-jjy">shogo82148/web-jjy</a></li>
         <li><a href="https://shogo82148.github.io/blog/2016/03/29/web-jjy/">Webブラウザを使って電波を出してみた</a></li>
         <li><a href="https://shogo82148.github.io/blog/2018/08/11/web-jjy-summer-time-support/">Web JJY が夏時間に対応しました</a></li>

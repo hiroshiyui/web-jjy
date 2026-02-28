@@ -5,7 +5,9 @@
     "lib": ["ES2015", "DOM"],
     "strict": true,
     "noEmit": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "include": ["src"]
 }

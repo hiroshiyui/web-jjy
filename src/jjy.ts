@@ -1,3 +1,5 @@
+import { t, initI18n } from './i18n';
+
 export {};
 
 declare global {
@@ -202,11 +204,13 @@ let play_flag = false;
 
 control_button.addEventListener('click', function() {
     if (play_flag) {
-        control_button.innerText = "Start";
+        control_button.textContent = t("btn_start");
+        control_button.setAttribute('data-i18n', 'btn_start');
         play_flag = false;
         stop();
     } else {
-        control_button.innerText = "Stop";
+        control_button.textContent = t("btn_stop");
+        control_button.setAttribute('data-i18n', 'btn_stop');
         play_flag = true;
         start();
     }
@@ -242,3 +246,5 @@ function render(): void {
     }
     requestAnimationFrame(render);
 }
+
+initI18n();
