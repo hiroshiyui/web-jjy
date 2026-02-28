@@ -4,6 +4,7 @@
   "p_intro": "Web Audioを駆使して標準電波JJYの信号を再現します。以下の「Start」ボタンを押すと信号の送信が始まります。",
   "btn_start": "Start",
   "btn_stop": "Stop",
+  "label_jst_mode": "日本標準時(JST)で送信",
   "label_summer_time": "夏時間を有効にする",
   "h2_oscillogram": "オシロスコープ",
   "h2_about": "このソフトについて",

@@ -1,6 +1,6 @@
 import './fluent-setup';
 import { t, initI18n } from './i18n';
-import { generateSignal } from './signal';
+import { generateSignal, toJSTDate } from './signal';
 
 declare global {
     interface Window {
@@ -37,6 +37,11 @@ function schedule(date: Date, summer_time: boolean): number[] {
 
 let intervalId: ReturnType<typeof setTimeout> | null;
 const summer_time_input = document.getElementById("summer-time") as HTMLElement & { checked: boolean };
+const jst_mode_input = document.getElementById("jst-mode") as HTMLElement & { checked: boolean };
+
+function adjustDate(date: Date): Date {
+    return jst_mode_input.checked ? toJSTDate(date) : date;
+}
 
 function start(): void {
     ctx = new AudioCtx();
@@ -57,7 +62,7 @@ function start(): void {
         t = next;
         delay += 60 * 1000;
     }
-    signal = schedule(new Date(t), summer_time_input.checked);
+    signal = schedule(adjustDate(new Date(t)), summer_time_input.checked);
 
     // HACK: timeout発火前にキャンセルする
     intervalId = setTimeout(function() {
@@ -67,7 +72,7 @@ function start(): void {
 
     function interval(): void {
         t += 60 * 1000;
-        signal = schedule(new Date(t), summer_time_input.checked);
+        signal = schedule(adjustDate(new Date(t)), summer_time_input.checked);
     }
 }
 
@@ -224,7 +229,18 @@ function renderOscillogram(): void {
 
 render();
 function render(): void {
-    nowtime.innerText = new Date().toString();
+    if (jst_mode_input.checked) {
+        const jst = toJSTDate(new Date());
+        const Y = jst.getFullYear();
+        const M = String(jst.getMonth() + 1).padStart(2, '0');
+        const D = String(jst.getDate()).padStart(2, '0');
+        const h = String(jst.getHours()).padStart(2, '0');
+        const m = String(jst.getMinutes()).padStart(2, '0');
+        const s = String(jst.getSeconds()).padStart(2, '0');
+        nowtime.innerText = `${Y}-${M}-${D} ${h}:${m}:${s} JST`;
+    } else {
+        nowtime.innerText = new Date().toString();
+    }
 
     ctx2d.clearRect(0, 0, w, canvas.height);
     if (signal) {

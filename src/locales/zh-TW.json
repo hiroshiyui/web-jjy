@@ -4,6 +4,7 @@
   "p_intro": "利用Web Audio技術重現標準電波JJY的信號。按下下方的「Start」按鈕即可開始發送信號。",
   "btn_start": "Start",
   "btn_stop": "Stop",
+  "label_jst_mode": "以日本標準時間(JST)傳送",
   "label_summer_time": "啟用夏令時間",
   "h2_oscillogram": "示波器",
   "h2_about": "關於本軟體",

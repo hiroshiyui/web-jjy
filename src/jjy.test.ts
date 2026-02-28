@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateSignal, MARKER_DURATION, BIT_HIGH_DURATION, BIT_LOW_DURATION } from './signal';
+import { generateSignal, toJSTDate, MARKER_DURATION, BIT_HIGH_DURATION, BIT_LOW_DURATION } from './signal';
 
 // 2025-06-15 14:30 — Sunday, day-of-year 166
 const testDate = new Date(2025, 5, 15, 14, 30, 0, 0);
@@ -71,6 +71,23 @@ describe('generateSignal', () => {
     it('encodes weekday 0 Sunday (indices 50-52)', () => {
         // weights [4, 2, 1] → 0,0,0
         expect(sig.slice(50, 53)).toEqual([0.8, 0.8, 0.8]);
+    });
+});
+
+describe('toJSTDate', () => {
+    it('adjusts timestamp by correct offset', () => {
+        const date = new Date();
+        const jst = toJSTDate(date);
+        const expectedDiff = (540 + date.getTimezoneOffset()) * 60000;
+        expect(jst.getTime() - date.getTime()).toBe(expectedDiff);
+    });
+
+    it('preserves minutes (JST offset is whole hours)', () => {
+        const date = new Date(2025, 5, 15, 14, 30, 45, 123);
+        const jst = toJSTDate(date);
+        expect(jst.getMinutes()).toBe(date.getMinutes());
+        expect(jst.getSeconds()).toBe(date.getSeconds());
+        expect(jst.getMilliseconds()).toBe(date.getMilliseconds());
     });
 });
 

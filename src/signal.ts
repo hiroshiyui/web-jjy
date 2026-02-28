@@ -1,5 +1,11 @@
 // Pure JJY signal generation — no DOM or Web Audio dependencies
 
+export function toJSTDate(date: Date): Date {
+    const JST_OFFSET_MIN = 9 * 60;
+    const adjustMs = (JST_OFFSET_MIN + date.getTimezoneOffset()) * 60 * 1000;
+    return new Date(date.getTime() + adjustMs);
+}
+
 export const MARKER_DURATION = 0.2;
 export const BIT_HIGH_DURATION = 0.5;
 export const BIT_LOW_DURATION = 0.8;
