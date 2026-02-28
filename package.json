@@ -4,7 +4,7 @@
   "description": "電波時計の時刻合わせには、標準電波JJYと呼ばれる 時刻に関する情報を送信している電波が使われています。  web-jjyは、この電波をブラウザ上で再現し、標準電波が届かない環境でも電波時計の時刻合わせを可能にするWebアプリです。",
   "main": "jjy.js",
   "scripts": {
-    "build": "esbuild src/jjy.ts --bundle --outfile=jjy.js --format=iife",
+    "build": "esbuild src/jjy.ts --bundle --outfile=jjy.js --format=iife --target=es2017",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -26,5 +26,8 @@
     "happy-dom": "^20.7.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@fluentui/web-components": "^2.6.1"
   }
 }
