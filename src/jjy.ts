@@ -1,6 +1,5 @@
 import { t, initI18n } from './i18n';
-
-export {};
+import { generateSignal } from './signal';
 
 declare global {
     interface Window {
@@ -9,156 +8,30 @@ declare global {
 }
 
 const freq = 13333;
-const MARKER_DURATION = 0.2;
-const BIT_HIGH_DURATION = 0.5;
-const BIT_LOW_DURATION = 0.8;
 let ctx: AudioContext | null;
 let signal: number[] | undefined;
 let analyser: AnalyserNode | null = null;
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 
-// うるう秒挿入日一覧(日本時)
-const plus_leapsecond_list: Date[] = [
-    new Date(2017, 0, 1, 9)
-];
-
-// うるう秒 +1:一ヶ月以内に挿入 -1:一ヶ月以内に削除
-function getleapsecond(): number {
-    const now = Date.now();
-    for (let i = 0; i < plus_leapsecond_list.length; i++) {
-        const diff = plus_leapsecond_list[i].getTime() - now;
-        if (diff > 0 && diff <= 31*24*60*60*1000) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 function schedule(date: Date, summer_time: boolean): number[] {
     const now = Date.now();
     const start = date.getTime();
     const offset = (start - now) / 1000 + ctx!.currentTime;
-    let minute = date.getMinutes();
-    let hour = date.getHours();
-    const fullyear = date.getFullYear();
-    let year = fullyear % 100;
-    let week_day = date.getDay();
-    let year_day = (new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (24*60*60*1000) + 1;
-    const array: number[] = [];
-    const leapsecond = getleapsecond();
+    const sig = generateSignal(date, summer_time);
 
-    function createTone(startTime: number, duration: number): void {
+    for (let i = 0; i < sig.length; i++) {
+        const t = i + offset;
+        if (t < 0) continue;
         const osc = ctx!.createOscillator();
         osc.type = "square";
         osc.frequency.value = freq;
-        osc.start(startTime);
-        osc.stop(startTime + duration);
+        osc.start(t);
+        osc.stop(t + sig[i]);
         osc.connect(analyser!);
     }
 
-    // 毎分s秒の位置のマーカーを出力する
-    function marker(s: number): void {
-        array.push(MARKER_DURATION);
-        const t = s + offset;
-        if (t < 0) return;
-        createTone(t, MARKER_DURATION);
-    }
-
-    // パリティービット
-    let pa = 0;
-
-    // bitを出力し、パリティビットを更新する
-    function bit(s: number, value: number, weight: number): number {
-        const b = value >= weight;
-        value -= b ? weight : 0;
-        pa += b ? 1 : 0;
-        const duration = b ? BIT_HIGH_DURATION : BIT_LOW_DURATION;
-        array.push(duration);
-        const t = s + offset;
-        if (t < 0) return value;
-        createTone(t, duration);
-        return value;
-    }
-
-    // BCD encode a value starting at startSecond with given weights
-    function encodeBCD(startSecond: number, value: number, weights: number[]): number {
-        for (let i = 0; i < weights.length; i++) {
-            value = bit(startSecond + i, value, weights[i]);
-        }
-        return value;
-    }
-
-    marker(0); // マーカー(M)
-
-    // 分
-    pa = 0;
-    minute = encodeBCD(1, minute, [40, 20, 10, 16, 8, 4, 2, 1]);
-    const pa2 = pa;
-
-    marker(9); // P1
-
-    // 時
-    pa = 0;
-    hour = encodeBCD(10, hour, [80, 40, 20, 10, 16, 8, 4, 2, 1]);
-    const pa1 = pa;
-
-    marker(19); // P2
-
-    // 1月1日からの通算日
-    year_day = encodeBCD(20, year_day, [800, 400, 200, 100, 160, 80, 40, 20, 10]);
-
-    marker(29); // P3
-
-    year_day = encodeBCD(30, year_day, [8, 4, 2, 1]);
-
-    bit(34, 0, 1); // 0
-    bit(35, 0, 1); // 0
-    bit(36, pa1 % 2, 1);
-    bit(37, pa2 % 2, 1);
-    bit(38, 0, 1); // SU1
-
-    marker(39); // P4
-
-    // SU2
-    if (summer_time) {
-        bit(40, 1, 1);
-    } else {
-        // 夏時間実施中（６日以内に夏時間から通常時間への変更なし）
-        bit(40, 0, 1);
-    }
-
-    // 年
-    year = encodeBCD(41, year, [80, 40, 20, 10, 8, 4, 2, 1]);
-
-    marker(49); // P5
-
-    // 曜日
-    week_day = encodeBCD(50, week_day, [4, 2, 1]);
-
-    // うるう秒
-    if (leapsecond === 0) {
-        // うるう秒なし
-        bit(53, 0, 1); // 0
-        bit(54, 0, 1); // 0
-    } else if (leapsecond > 0) {
-        // 正のうるう秒
-        bit(53, 1, 1); // 1
-        bit(54, 1, 1); // 1
-    } else {
-        // 負のうるう秒
-        bit(53, 1, 1); // 1
-        bit(54, 0, 1); // 0
-    }
-
-    bit(55, 0, 1); // 0
-    bit(56, 0, 1); // 0
-    bit(57, 0, 1); // 0
-    bit(58, 0, 1); // 0
-
-    marker(59); // P0
-
-    return array;
+    return sig;
 }
 
 let intervalId: ReturnType<typeof setTimeout> | null;
