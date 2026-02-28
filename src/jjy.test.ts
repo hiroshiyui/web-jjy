@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateSignal, decodeSignal, toJSTDate, MARKER_DURATION, BIT_HIGH_DURATION, BIT_LOW_DURATION } from './signal';
+import { generateSignal, decodeSignal, toJSTDate, getleapsecond, MARKER_DURATION, BIT_HIGH_DURATION, BIT_LOW_DURATION } from './signal';
 
 // 2025-06-15 14:30 — Sunday, day-of-year 166
 const testDate = new Date(2025, 5, 15, 14, 30, 0, 0);
@@ -154,6 +154,93 @@ describe('summer time does not affect other decoded fields', () => {
         expect(decodeSignal(sigOff)).toEqual(decodeSignal(sigOn));
         expect(sigOff[40]).toBe(BIT_LOW_DURATION);
         expect(sigOn[40]).toBe(BIT_HIGH_DURATION);
+    });
+});
+
+describe('getleapsecond', () => {
+    it('returns 0 when no leap second is pending', () => {
+        // All entries in the leap second list are in the past
+        expect(getleapsecond()).toBe(0);
+    });
+});
+
+describe('generateSignal determinism', () => {
+    it('produces identical output for same inputs', () => {
+        const a = generateSignal(testDate, false);
+        const b = generateSignal(testDate, false);
+        expect(a).toEqual(b);
+    });
+});
+
+describe('generateSignal structural invariants', () => {
+    it('only marker positions have MARKER_DURATION', () => {
+        const markerPositions = new Set([0, 9, 19, 29, 39, 49, 59]);
+        const dates = [testDate, new Date(2024, 11, 31, 23, 59), new Date(2000, 0, 1, 0, 0)];
+        for (const date of dates) {
+            const sig = generateSignal(date, false);
+            for (let i = 0; i < 60; i++) {
+                if (markerPositions.has(i)) {
+                    expect(sig[i]).toBe(MARKER_DURATION);
+                } else {
+                    expect(sig[i]).not.toBe(MARKER_DURATION);
+                }
+            }
+        }
+    });
+
+    it('encodes minute 0 as all-zero BCD', () => {
+        const sig = generateSignal(new Date(2025, 0, 1, 0, 0, 0, 0), false);
+        expect(sig.slice(1, 9)).toEqual(Array(8).fill(BIT_LOW_DURATION));
+    });
+
+    it('encodes hour 0 as all-zero BCD', () => {
+        const sig = generateSignal(new Date(2025, 0, 1, 0, 0, 0, 0), false);
+        expect(sig.slice(10, 19)).toEqual(Array(9).fill(BIT_LOW_DURATION));
+    });
+});
+
+describe('parity bits systematic', () => {
+    function countSetBits(sig: number[], start: number, end: number): number {
+        let count = 0;
+        for (let i = start; i <= end; i++) {
+            if (sig[i] === BIT_HIGH_DURATION) count++;
+        }
+        return count;
+    }
+
+    const parityDates = [
+        new Date(2025, 5, 15, 14, 30),  // even/even
+        new Date(2025, 0, 1, 1, 15),    // odd/odd
+        new Date(2025, 0, 1, 0, 0),     // 0 bits
+        new Date(2025, 0, 1, 23, 59),   // many bits
+        new Date(2025, 2, 15, 7, 42),   // mixed
+    ];
+
+    for (const date of parityDates) {
+        it(`PA1/PA2 match parity for ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`, () => {
+            const sig = generateSignal(date, false);
+            const hourBits = countSetBits(sig, 10, 18);
+            const minuteBits = countSetBits(sig, 1, 8);
+            // PA1 (pos 36) = hour parity, PA2 (pos 37) = minute parity
+            expect(sig[36]).toBe(hourBits % 2 === 1 ? BIT_HIGH_DURATION : BIT_LOW_DURATION);
+            expect(sig[37]).toBe(minuteBits % 2 === 1 ? BIT_HIGH_DURATION : BIT_LOW_DURATION);
+        });
+    }
+});
+
+describe('toJSTDate concrete conversions', () => {
+    it('converts UTC epoch to JST 09:00', () => {
+        const utcMidnight = new Date(0); // 1970-01-01T00:00:00Z
+        const jst = toJSTDate(utcMidnight);
+        expect(jst.getHours() - utcMidnight.getHours()).toBe(9 + utcMidnight.getTimezoneOffset() / 60);
+    });
+
+    it('is idempotent in JST timezone (offset = 0 when already JST)', () => {
+        const date = new Date(2025, 5, 15, 14, 30);
+        const jst = toJSTDate(date);
+        // Offset should equal (540 + local offset) minutes
+        const expectedOffsetMs = (540 + date.getTimezoneOffset()) * 60000;
+        expect(jst.getTime() - date.getTime()).toBe(expectedOffsetMs);
     });
 });
 
