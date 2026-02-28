@@ -1,0 +1,26 @@
+{
+  "name": "web-jjy",
+  "version": "1.0.0",
+  "description": "電波時計の時刻合わせには、標準電波JJYと呼ばれる 時刻に関する情報を送信している電波が使われています。  web-jjyは、この電波をブラウザ上で再現し、標準電波が届かない環境でも電波時計の時刻合わせを可能にするWebアプリです。",
+  "main": "jjy.js",
+  "scripts": {
+    "build": "esbuild src/jjy.ts --bundle --outfile=jjy.js --format=iife",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shogo82148/web-jjy.git"
+  },
+  "keywords": [],
+  "author": "ICHINOSE Shogo (https://github.com/shogo82148/web-jjy)",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shogo82148/web-jjy/issues"
+  },
+  "homepage": "https://github.com/shogo82148/web-jjy#readme",
+  "devDependencies": {
+    "esbuild": "^0.27.3",
+    "typescript": "^5.9.3"
+  }
+}
