@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateSignal, decodeSignal, toJSTDate, getleapsecond, MARKER_DURATION, BIT_HIGH_DURATION, BIT_LOW_DURATION } from './signal';
 
-// 2025-06-15 14:30 — Sunday, day-of-year 166
+// 2025-06-15 14:30 — 日曜日、年通日166
 const testDate = new Date(2025, 5, 15, 14, 30, 0, 0);
 
 describe('generateSignal', () => {
@@ -25,31 +25,31 @@ describe('generateSignal', () => {
     });
 
     it('encodes minute 30 (indices 1-8)', () => {
-        // BCD weights [40, 20, 10, 16, 8, 4, 2, 1]
-        // 30 → bits: 0,1,1,0,0,0,0,0
+        // BCD重み [40, 20, 10, 16, 8, 4, 2, 1]
+        // 30 → ビット: 0,1,1,0,0,0,0,0
         const expected = [0.8, 0.5, 0.5, 0.8, 0.8, 0.8, 0.8, 0.8];
         expect(sig.slice(1, 9)).toEqual(expected);
     });
 
     it('encodes hour 14 (indices 10-18)', () => {
-        // BCD weights [80, 40, 20, 10, 16, 8, 4, 2, 1]
-        // 14 → bits: 0,0,0,1,0,0,1,0,0
+        // BCD重み [80, 40, 20, 10, 16, 8, 4, 2, 1]
+        // 14 → ビット: 0,0,0,1,0,0,1,0,0
         const expected = [0.8, 0.8, 0.8, 0.5, 0.8, 0.8, 0.5, 0.8, 0.8];
         expect(sig.slice(10, 19)).toEqual(expected);
     });
 
     it('encodes day-of-year 166 (indices 20-28, 30-33)', () => {
-        // weights [800,400,200,100,160,80,40,20,10]
-        // 166 → bits: 0,0,0,1,0,0,1,1,0
+        // 重み [800,400,200,100,160,80,40,20,10]
+        // 166 → ビット: 0,0,0,1,0,0,1,1,0
         expect(sig.slice(20, 29)).toEqual([0.8, 0.8, 0.8, 0.5, 0.8, 0.8, 0.5, 0.5, 0.8]);
-        // weights [8,4,2,1], remaining 6 → bits: 0,1,1,0
+        // 重み [8,4,2,1], 残り6 → ビット: 0,1,1,0
         expect(sig.slice(30, 34)).toEqual([0.8, 0.5, 0.5, 0.8]);
     });
 
     it('encodes parity bits (even parity)', () => {
-        // PA1 (hour 14): 2 set bits → even → 0
+        // PA1 (時14): セットビット2個 → 偶数 → 0
         expect(sig[36]).toBe(BIT_LOW_DURATION);
-        // PA2 (minute 30): 2 set bits → even → 0
+        // PA2 (分30): セットビット2個 → 偶数 → 0
         expect(sig[37]).toBe(BIT_LOW_DURATION);
     });
 
@@ -63,13 +63,13 @@ describe('generateSignal', () => {
     });
 
     it('encodes year 25 (indices 41-48)', () => {
-        // BCD weights [80, 40, 20, 10, 8, 4, 2, 1]
-        // 25 → bits: 0,0,1,0,0,1,0,1
+        // BCD重み [80, 40, 20, 10, 8, 4, 2, 1]
+        // 25 → ビット: 0,0,1,0,0,1,0,1
         expect(sig.slice(41, 49)).toEqual([0.8, 0.8, 0.5, 0.8, 0.8, 0.5, 0.8, 0.5]);
     });
 
     it('encodes weekday 0 Sunday (indices 50-52)', () => {
-        // weights [4, 2, 1] → 0,0,0
+        // 重み [4, 2, 1] → 0,0,0
         expect(sig.slice(50, 53)).toEqual([0.8, 0.8, 0.8]);
     });
 });
@@ -99,7 +99,7 @@ describe('decodeSignal', () => {
         expect(decoded.hour).toBe(14);
         expect(decoded.dayOfYear).toBe(166);
         expect(decoded.year).toBe(25);
-        expect(decoded.weekday).toBe(0); // Sunday
+        expect(decoded.weekday).toBe(0); // 日曜日
     });
 
     it('decodes different date correctly', () => {
@@ -109,17 +109,17 @@ describe('decodeSignal', () => {
         expect(decoded.hour).toBe(23);
         expect(decoded.dayOfYear).toBe(1);
         expect(decoded.year).toBe(25);
-        expect(decoded.weekday).toBe(3); // Wednesday
+        expect(decoded.weekday).toBe(3); // 水曜日
     });
 });
 
 describe('decodeSignal roundtrip', () => {
     const cases: { label: string; date: Date; minute: number; hour: number; day: number; year: number; weekday: number }[] = [
-        { label: 'midnight Jan 1 year 00', date: new Date(2000, 0, 1, 0, 0), minute: 0, hour: 0, day: 1, year: 0, weekday: 6 },
-        { label: 'max time Dec 31 year 99', date: new Date(2099, 11, 31, 23, 59), minute: 59, hour: 23, day: 365, year: 99, weekday: 4 },
-        { label: 'leap year day 366', date: new Date(2024, 11, 31, 12, 0), minute: 0, hour: 12, day: 366, year: 24, weekday: 2 },
-        { label: 'all weekdays Mon', date: new Date(2025, 5, 16, 1, 1), minute: 1, hour: 1, day: 167, year: 25, weekday: 1 },
-        { label: 'minute 0 hour 0', date: new Date(2025, 0, 5, 0, 0), minute: 0, hour: 0, day: 5, year: 25, weekday: 0 },
+        { label: '0時0分 1月1日 00年', date: new Date(2000, 0, 1, 0, 0), minute: 0, hour: 0, day: 1, year: 0, weekday: 6 },
+        { label: '23時59分 12月31日 99年', date: new Date(2099, 11, 31, 23, 59), minute: 59, hour: 23, day: 365, year: 99, weekday: 4 },
+        { label: 'うるう年 通日366', date: new Date(2024, 11, 31, 12, 0), minute: 0, hour: 12, day: 366, year: 24, weekday: 2 },
+        { label: '月曜日テスト', date: new Date(2025, 5, 16, 1, 1), minute: 1, hour: 1, day: 167, year: 25, weekday: 1 },
+        { label: '0分0時', date: new Date(2025, 0, 5, 0, 0), minute: 0, hour: 0, day: 5, year: 25, weekday: 0 },
     ];
 
     for (const c of cases) {
@@ -159,7 +159,7 @@ describe('summer time does not affect other decoded fields', () => {
 
 describe('getleapsecond', () => {
     it('returns 0 when no leap second is pending', () => {
-        // All entries in the leap second list are in the past
+        // うるう秒リストの全エントリは過去のもの
         expect(getleapsecond()).toBe(0);
     });
 });
@@ -209,11 +209,11 @@ describe('parity bits systematic', () => {
     }
 
     const parityDates = [
-        new Date(2025, 5, 15, 14, 30),  // even/even
-        new Date(2025, 0, 1, 1, 15),    // odd/odd
-        new Date(2025, 0, 1, 0, 0),     // 0 bits
-        new Date(2025, 0, 1, 23, 59),   // many bits
-        new Date(2025, 2, 15, 7, 42),   // mixed
+        new Date(2025, 5, 15, 14, 30),  // 偶数/偶数
+        new Date(2025, 0, 1, 1, 15),    // 奇数/奇数
+        new Date(2025, 0, 1, 0, 0),     // ビット0個
+        new Date(2025, 0, 1, 23, 59),   // ビット多数
+        new Date(2025, 2, 15, 7, 42),   // 混合
     ];
 
     for (const date of parityDates) {
@@ -221,7 +221,7 @@ describe('parity bits systematic', () => {
             const sig = generateSignal(date, false);
             const hourBits = countSetBits(sig, 10, 18);
             const minuteBits = countSetBits(sig, 1, 8);
-            // PA1 (pos 36) = hour parity, PA2 (pos 37) = minute parity
+            // PA1 (位置36) = 時パリティ, PA2 (位置37) = 分パリティ
             expect(sig[36]).toBe(hourBits % 2 === 1 ? BIT_HIGH_DURATION : BIT_LOW_DURATION);
             expect(sig[37]).toBe(minuteBits % 2 === 1 ? BIT_HIGH_DURATION : BIT_LOW_DURATION);
         });
@@ -238,7 +238,7 @@ describe('toJSTDate concrete conversions', () => {
     it('is idempotent in JST timezone (offset = 0 when already JST)', () => {
         const date = new Date(2025, 5, 15, 14, 30);
         const jst = toJSTDate(date);
-        // Offset should equal (540 + local offset) minutes
+        // オフセットは(540 + ローカルオフセット)分に等しいはず
         const expectedOffsetMs = (540 + date.getTimezoneOffset()) * 60000;
         expect(jst.getTime() - date.getTime()).toBe(expectedOffsetMs);
     });
@@ -247,37 +247,37 @@ describe('toJSTDate concrete conversions', () => {
 describe('generateSignal with different dates', () => {
     it('encodes minute 59', () => {
         const sig = generateSignal(new Date(2025, 0, 1, 0, 59, 0, 0), false);
-        // 59: weights [40,20,10,16,8,4,2,1] → 1,0,1,0,1,0,0,1
+        // 59: 重み [40,20,10,16,8,4,2,1] → 1,0,1,0,1,0,0,1
         expect(sig.slice(1, 9)).toEqual([0.5, 0.8, 0.5, 0.8, 0.5, 0.8, 0.8, 0.5]);
     });
 
     it('encodes hour 23', () => {
         const sig = generateSignal(new Date(2025, 0, 1, 23, 0, 0, 0), false);
-        // 23: weights [80,40,20,10,16,8,4,2,1] → 0,0,1,0,0,0,0,1,1
+        // 23: 重み [80,40,20,10,16,8,4,2,1] → 0,0,1,0,0,0,0,1,1
         expect(sig.slice(10, 19)).toEqual([0.8, 0.8, 0.5, 0.8, 0.8, 0.8, 0.8, 0.5, 0.5]);
     });
 
     it('encodes day-of-year 365 (Dec 31)', () => {
         const sig = generateSignal(new Date(2025, 11, 31, 0, 0, 0, 0), false);
-        // 365: weights [800,400,200,100,160,80,40,20,10] → 0,0,1,1,0,0,1,1,0
+        // 365: 重み [800,400,200,100,160,80,40,20,10] → 0,0,1,1,0,0,1,1,0
         expect(sig.slice(20, 29)).toEqual([0.8, 0.8, 0.5, 0.5, 0.8, 0.8, 0.5, 0.5, 0.8]);
-        // remaining 5: weights [8,4,2,1] → 0,1,0,1
+        // 残り5: 重み [8,4,2,1] → 0,1,0,1
         expect(sig.slice(30, 34)).toEqual([0.8, 0.5, 0.8, 0.5]);
     });
 
     it('encodes weekday Saturday (6)', () => {
-        // 2025-06-14 is Saturday
+        // 2025-06-14は土曜日
         const sig = generateSignal(new Date(2025, 5, 14, 0, 0, 0, 0), false);
-        // 6: weights [4,2,1] → 1,1,0
+        // 6: 重み [4,2,1] → 1,1,0
         expect(sig.slice(50, 53)).toEqual([0.5, 0.5, 0.8]);
     });
 
     it('computes odd parity correctly', () => {
-        // 2025-01-01 01:15 — Wednesday, day 1
+        // 2025-01-01 01:15 — 水曜日、通日1
         const sig = generateSignal(new Date(2025, 0, 1, 1, 15, 0, 0), false);
-        // Hour 1: 1 set bit → PA1 = 1 (odd)
+        // 時1: セットビット1個 → PA1 = 1 (奇数)
         expect(sig[36]).toBe(BIT_HIGH_DURATION);
-        // Minute 15: 3 set bits → PA2 = 1 (odd)
+        // 分15: セットビット3個 → PA2 = 1 (奇数)
         expect(sig[37]).toBe(BIT_HIGH_DURATION);
     });
 });
