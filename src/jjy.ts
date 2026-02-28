@@ -7,6 +7,9 @@ declare global {
 }
 
 const freq = 13333;
+const MARKER_DURATION = 0.2;
+const BIT_HIGH_DURATION = 0.5;
+const BIT_LOW_DURATION = 0.8;
 let ctx: AudioContext | null;
 let signal: number[] | undefined;
 
@@ -42,17 +45,21 @@ function schedule(date: Date, summer_time: boolean): number[] {
     const array: number[] = [];
     const leapsecond = getleapsecond();
 
-    // 毎分s秒の位置のマーカーを出力する
-    function marker(s: number): void {
-        array.push(0.2);
-        const t = s + offset;
-        if (t < 0) return;
+    function createTone(startTime: number, duration: number): void {
         const osc = ctx!.createOscillator();
         osc.type = "square";
         osc.frequency.value = freq;
-        osc.start(t);
-        osc.stop(t + 0.2);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
         osc.connect(ctx!.destination);
+    }
+
+    // 毎分s秒の位置のマーカーを出力する
+    function marker(s: number): void {
+        array.push(MARKER_DURATION);
+        const t = s + offset;
+        if (t < 0) return;
+        createTone(t, MARKER_DURATION);
     }
 
     // パリティービット
@@ -63,15 +70,19 @@ function schedule(date: Date, summer_time: boolean): number[] {
         const b = value >= weight;
         value -= b ? weight : 0;
         pa += b ? 1 : 0;
-        array.push(b ? 0.5 : 0.8);
+        const duration = b ? BIT_HIGH_DURATION : BIT_LOW_DURATION;
+        array.push(duration);
         const t = s + offset;
         if (t < 0) return value;
-        const osc = ctx!.createOscillator();
-        osc.type = "square";
-        osc.frequency.value = freq;
-        osc.start(t);
-        osc.stop(t + (b ? 0.5 : 0.8));
-        osc.connect(ctx!.destination);
+        createTone(t, duration);
+        return value;
+    }
+
+    // BCD encode a value starting at startSecond with given weights
+    function encodeBCD(startSecond: number, value: number, weights: number[]): number {
+        for (let i = 0; i < weights.length; i++) {
+            value = bit(startSecond + i, value, weights[i]);
+        }
         return value;
     }
 
@@ -79,50 +90,24 @@ function schedule(date: Date, summer_time: boolean): number[] {
 
     // 分
     pa = 0;
-    minute = bit(1, minute,  40);
-    minute = bit(2, minute,  20);
-    minute = bit(3, minute,  10);
-    minute = bit(4, minute,  16);
-    minute = bit(5, minute,  8);
-    minute = bit(6, minute,  4);
-    minute = bit(7, minute,  2);
-    minute = bit(8, minute,  1);
+    minute = encodeBCD(1, minute, [40, 20, 10, 16, 8, 4, 2, 1]);
     const pa2 = pa;
 
     marker(9); // P1
 
     // 時
     pa = 0;
-    hour = bit(10, hour, 80);
-    hour = bit(11, hour, 40);
-    hour = bit(12, hour, 20);
-    hour = bit(13, hour, 10);
-    hour = bit(14, hour, 16);
-    hour = bit(15, hour, 8);
-    hour = bit(16, hour, 4);
-    hour = bit(17, hour, 2);
-    hour = bit(18, hour, 1);
+    hour = encodeBCD(10, hour, [80, 40, 20, 10, 16, 8, 4, 2, 1]);
     const pa1 = pa;
 
     marker(19); // P2
 
     // 1月1日からの通算日
-    year_day = bit(20, year_day, 800);
-    year_day = bit(21, year_day, 400);
-    year_day = bit(22, year_day, 200);
-    year_day = bit(23, year_day, 100);
-    year_day = bit(24, year_day, 160);
-    year_day = bit(25, year_day, 80);
-    year_day = bit(26, year_day, 40);
-    year_day = bit(27, year_day, 20);
-    year_day = bit(28, year_day, 10);
+    year_day = encodeBCD(20, year_day, [800, 400, 200, 100, 160, 80, 40, 20, 10]);
 
     marker(29); // P3
 
-    year_day = bit(30, year_day, 8);
-    year_day = bit(31, year_day, 4);
-    year_day = bit(32, year_day, 2);
-    year_day = bit(33, year_day, 1);
+    year_day = encodeBCD(30, year_day, [8, 4, 2, 1]);
 
     bit(34, 0, 1); // 0
     bit(35, 0, 1); // 0
@@ -141,21 +126,12 @@ function schedule(date: Date, summer_time: boolean): number[] {
     }
 
     // 年
-    year = bit(41, year, 80);
-    year = bit(42, year, 40);
-    year = bit(43, year, 20);
-    year = bit(44, year, 10);
-    year = bit(45, year, 8);
-    year = bit(46, year, 4);
-    year = bit(47, year, 2);
-    year = bit(48, year, 1);
+    year = encodeBCD(41, year, [80, 40, 20, 10, 8, 4, 2, 1]);
 
     marker(49); // P5
 
     // 曜日
-    week_day = bit(50, week_day, 4);
-    week_day = bit(51, week_day, 2);
-    week_day = bit(52, week_day, 1);
+    week_day = encodeBCD(50, week_day, [4, 2, 1]);
 
     // うるう秒
     if (leapsecond === 0) {
@@ -240,13 +216,12 @@ const nowtime = document.getElementById('time')!;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx2d = canvas.getContext('2d')!;
 const w = canvas.width;
-const h = canvas.height;
 
 render();
 function render(): void {
     nowtime.innerText = new Date().toString();
 
-    ctx2d.clearRect(0, 0, w, h);
+    ctx2d.clearRect(0, 0, w, canvas.height);
     if (!signal) {
         requestAnimationFrame(render);
         return;
@@ -254,7 +229,7 @@ function render(): void {
     const now = Math.floor(Date.now() / 1000) % 60;
 
     for (let i = 0; i < signal.length; i++) {
-        if (i == now) {
+        if (i === now) {
             if (signal[i] < 0.3) ctx2d.fillStyle = "#FF0000";
             else if (signal[i] < 0.7) ctx2d.fillStyle = "#FFFF00";
             else ctx2d.fillStyle = "#00FF00";
