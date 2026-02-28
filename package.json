@@ -5,7 +5,9 @@
   "main": "jjy.js",
   "scripts": {
     "build": "esbuild src/jjy.ts --bundle --outfile=jjy.js --format=iife",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,8 @@
   "homepage": "https://github.com/shogo82148/web-jjy#readme",
   "devDependencies": {
     "esbuild": "^0.27.3",
-    "typescript": "^5.9.3"
+    "happy-dom": "^20.7.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
