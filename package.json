@@ -15,8 +15,7 @@
   },
   "keywords": [],
   "author": "ICHINOSE Shogo (https://github.com/shogo82148/web-jjy)",
-  "license": "ISC",
-  "type": "commonjs",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/shogo82148/web-jjy/issues"
   },

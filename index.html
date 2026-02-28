@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
   <head>
+    <meta charset="UTF-8">
     <title data-i18n="title">Web JJY</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="styles.css">
@@ -54,7 +55,7 @@
         <fluent-accordion-item>
           <span slot="heading" data-i18n="h2_about">このソフトについて</span>
           <p data-i18n-html="p_about">
-            電波時計の時刻合わせには、<a href="http://jjy.nict.go.jp/jjy/">標準電波JJY</a>と呼ばれる
+            電波時計の時刻合わせには、<a href="https://jjy.nict.go.jp/jjy/">標準電波JJY</a>と呼ばれる
             時刻に関する情報を送信している電波が使われています。
             このシミュレータは、この電波をブラウザ上で再現し、標準電波が届かない環境でも電波時計の時刻合わせを可能にします。
           </p>
@@ -82,7 +83,7 @@
 
         <fluent-accordion-item>
           <span slot="heading" data-i18n="h2_environment">動作環境</span>
-          <p data-i18n="p_environment">MacBook Air + Google Chrome 48.0.2564.116 + CITIZEN 8RZ152 で動作を確認しています。</p>
+          <p data-i18n="p_environment">MacBook Air + Google Chrome + CITIZEN 8RZ152 で動作を確認しています。</p>
         </fluent-accordion-item>
 
         <fluent-accordion-item>
@@ -96,7 +97,7 @@
             そこで、歪んだ波形に含まれる高調波を利用します。
             ボリュームを大きくして音が割れた状態になると、音声信号は矩形波に近いかたちになります。
             13.333kHzの矩形波にはその3倍の39.999kHzの周波数成分が含まれるので、約40kHzの電波が出せるというわけです。
-            詳しくは<a href="http://www.starstonesoft.com/jjy_simulator.htm">フリーソフト電波時計用JJYシミュレータのページ</a>を参照してください。
+            詳しくは<a href="https://www.starstonesoft.com/jjy_simulator.htm">フリーソフト電波時計用JJYシミュレータのページ</a>を参照してください。
           </p>
         </fluent-accordion-item>
 
@@ -107,13 +108,11 @@
 
         <fluent-accordion-item>
           <span slot="heading" data-i18n="h2_links">関連リンク</span>
-          <p>
-            <ul data-i18n-html="links_list">
-              <li><a href="https://github.com/shogo82148/web-jjy">shogo82148/web-jjy</a></li>
-              <li><a href="https://shogo82148.github.io/blog/2016/03/29/web-jjy/">Webブラウザを使って電波を出してみた</a></li>
-              <li><a href="https://shogo82148.github.io/blog/2018/08/11/web-jjy-summer-time-support/">Web JJY が夏時間に対応しました</a></li>
-            </ul>
-          </p>
+          <ul data-i18n-html="links_list">
+            <li><a href="https://github.com/shogo82148/web-jjy">shogo82148/web-jjy</a></li>
+            <li><a href="https://shogo82148.github.io/blog/2016/03/29/web-jjy/">Webブラウザを使って電波を出してみた</a></li>
+            <li><a href="https://shogo82148.github.io/blog/2018/08/11/web-jjy-summer-time-support/">Web JJY が夏時間に対応しました</a></li>
+          </ul>
         </fluent-accordion-item>
       </fluent-accordion>
     </div>

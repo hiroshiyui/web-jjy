@@ -10,6 +10,22 @@ export const MARKER_DURATION = 0.2;
 export const BIT_HIGH_DURATION = 0.5;
 export const BIT_LOW_DURATION = 0.8;
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function getDayOfYear(date: Date): number {
+    const startOfYear = new Date(date.getFullYear(), 0, 1).getTime();
+    const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    return (startOfDay - startOfYear) / DAY_MS + 1;
+}
+
+const WEIGHTS_MINUTE = [40, 20, 10, 16, 8, 4, 2, 1] as const;
+const WEIGHTS_HOUR = [80, 40, 20, 10, 16, 8, 4, 2, 1] as const;
+const WEIGHTS_YEARDAY_HIGH = [800, 400, 200, 100, 160, 80, 40, 20, 10] as const;
+const WEIGHTS_YEARDAY_LOW = [8, 4, 2, 1] as const;
+const WEIGHTS_YEARDAY = [...WEIGHTS_YEARDAY_HIGH, ...WEIGHTS_YEARDAY_LOW] as const;
+const WEIGHTS_YEAR = [80, 40, 20, 10, 8, 4, 2, 1] as const;
+const WEIGHTS_WEEKDAY = [4, 2, 1] as const;
+
 // うるう秒挿入日一覧(日本時)
 const plus_leapsecond_list: Date[] = [
     new Date(2017, 0, 1, 9)
@@ -34,7 +50,7 @@ export function generateSignal(date: Date, summer_time: boolean): number[] {
     const fullyear = date.getFullYear();
     let year = fullyear % 100;
     let week_day = date.getDay();
-    let year_day = (new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (24*60*60*1000) + 1;
+    let year_day = getDayOfYear(date);
     const array: number[] = [];
     const leapsecond = getleapsecond();
 
@@ -54,7 +70,7 @@ export function generateSignal(date: Date, summer_time: boolean): number[] {
         return value;
     }
 
-    function encodeBCD(value: number, weights: number[]): number {
+    function encodeBCD(value: number, weights: readonly number[]): number {
         for (let i = 0; i < weights.length; i++) {
             value = bit(value, weights[i]);
         }
@@ -65,24 +81,24 @@ export function generateSignal(date: Date, summer_time: boolean): number[] {
 
     // 分
     pa = 0;
-    minute = encodeBCD(minute, [40, 20, 10, 16, 8, 4, 2, 1]);
+    minute = encodeBCD(minute, WEIGHTS_MINUTE);
     const pa2 = pa;
 
     marker(); // P1
 
     // 時
     pa = 0;
-    hour = encodeBCD(hour, [80, 40, 20, 10, 16, 8, 4, 2, 1]);
+    hour = encodeBCD(hour, WEIGHTS_HOUR);
     const pa1 = pa;
 
     marker(); // P2
 
     // 1月1日からの通算日
-    year_day = encodeBCD(year_day, [800, 400, 200, 100, 160, 80, 40, 20, 10]);
+    year_day = encodeBCD(year_day, WEIGHTS_YEARDAY_HIGH);
 
     marker(); // P3
 
-    year_day = encodeBCD(year_day, [8, 4, 2, 1]);
+    year_day = encodeBCD(year_day, WEIGHTS_YEARDAY_LOW);
 
     bit(0, 1); // 0
     bit(0, 1); // 0
@@ -100,12 +116,12 @@ export function generateSignal(date: Date, summer_time: boolean): number[] {
     }
 
     // 年
-    year = encodeBCD(year, [80, 40, 20, 10, 8, 4, 2, 1]);
+    year = encodeBCD(year, WEIGHTS_YEAR);
 
     marker(); // P5
 
     // 曜日
-    week_day = encodeBCD(week_day, [4, 2, 1]);
+    week_day = encodeBCD(week_day, WEIGHTS_WEEKDAY);
 
     // うるう秒
     if (leapsecond === 0) {
@@ -141,7 +157,7 @@ export function decodeSignal(signal: number[]): DecodedSignal {
     function bitVal(i: number): number {
         return signal[i] < 0.7 ? 1 : 0;
     }
-    function bcd(positions: number[], weights: number[]): number {
+    function bcd(positions: number[], weights: readonly number[]): number {
         let v = 0;
         for (let i = 0; i < positions.length; i++) {
             v += bitVal(positions[i]) * weights[i];
@@ -149,10 +165,10 @@ export function decodeSignal(signal: number[]): DecodedSignal {
         return v;
     }
     return {
-        minute: bcd([1,2,3,4,5,6,7,8], [40,20,10,16,8,4,2,1]),
-        hour: bcd([10,11,12,13,14,15,16,17,18], [80,40,20,10,16,8,4,2,1]),
-        dayOfYear: bcd([20,21,22,23,24,25,26,27,28,30,31,32,33], [800,400,200,100,160,80,40,20,10,8,4,2,1]),
-        year: bcd([41,42,43,44,45,46,47,48], [80,40,20,10,8,4,2,1]),
-        weekday: bcd([50,51,52], [4,2,1]),
+        minute: bcd([1,2,3,4,5,6,7,8], WEIGHTS_MINUTE),
+        hour: bcd([10,11,12,13,14,15,16,17,18], WEIGHTS_HOUR),
+        dayOfYear: bcd([20,21,22,23,24,25,26,27,28,30,31,32,33], WEIGHTS_YEARDAY),
+        year: bcd([41,42,43,44,45,46,47,48], WEIGHTS_YEAR),
+        weekday: bcd([50,51,52], WEIGHTS_WEEKDAY),
     };
 }

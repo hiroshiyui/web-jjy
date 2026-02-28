@@ -1,6 +1,6 @@
 /** @vitest-environment happy-dom */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { t, setLocale } from './i18n';
+import { t, setLocale, LocaleKey } from './i18n';
 
 beforeEach(() => {
     setLocale('ja');
@@ -16,7 +16,7 @@ describe('t()', () => {
     });
 
     it('returns key itself for nonexistent key', () => {
-        expect(t('nonexistent_key')).toBe('nonexistent_key');
+        expect(t('nonexistent_key' as LocaleKey)).toBe('nonexistent_key');
     });
 });
 
@@ -33,7 +33,7 @@ describe('setLocale()', () => {
         // A key that exists in ja but hypothetically not in zh-TW
         // would fall through. We verify the chain works by checking
         // that an unknown key still returns itself.
-        expect(t('nonexistent_key')).toBe('nonexistent_key');
+        expect(t('nonexistent_key' as LocaleKey)).toBe('nonexistent_key');
     });
 
     it('ignores invalid locale and keeps current', () => {

@@ -1,6 +1,8 @@
 import ja from './locales/ja.json';
 import zhTW from './locales/zh-TW.json';
 
+export type LocaleKey = keyof typeof ja;
+
 type Translations = Record<string, string>;
 
 const locales: Record<string, Translations> = {
@@ -10,13 +12,13 @@ const locales: Record<string, Translations> = {
 
 let currentLocale = 'ja';
 
-export function t(key: string): string {
+export function t(key: LocaleKey): string {
     return locales[currentLocale]?.[key] ?? locales['ja'][key] ?? key;
 }
 
 function applyTranslations(): void {
     document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
-        const key = el.getAttribute('data-i18n')!;
+        const key = el.getAttribute('data-i18n')! as LocaleKey;
         const value = t(key);
         if (el.tagName === 'TITLE') {
             document.title = value;
@@ -26,7 +28,7 @@ function applyTranslations(): void {
     });
 
     document.querySelectorAll<HTMLElement>('[data-i18n-html]').forEach((el) => {
-        const key = el.getAttribute('data-i18n-html')!;
+        const key = el.getAttribute('data-i18n-html')! as LocaleKey;
         el.innerHTML = t(key);
     });
 
