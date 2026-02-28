@@ -11,9 +11,10 @@ Web JJY — a browser-based simulator of the Japanese standard time signal JJY. 
 ```bash
 npm run build      # esbuild: src/jjy.ts → jjy.js (IIFE bundle)
 npm run typecheck   # tsc --noEmit (equivalent: npx tsc --noEmit)
+npm test           # vitest run
 ```
 
-No test framework is configured. Verify changes with `build` + `typecheck`.
+Verify changes with `build` + `typecheck` + `test`.
 
 ## Key Constraints
 
@@ -25,9 +26,9 @@ No test framework is configured. Verify changes with `build` + `typecheck`.
 
 **Entry point:** `index.html` loads `jjy.js` (bundled from `src/jjy.ts`).
 
-**Signal generation (`src/jjy.ts`):**
-- `schedule()` encodes the current time into the JJY 60-second protocol (BCD-encoded minutes, hours, day-of-year, year, weekday, parity bits, leap second, summer time flag)
-- `createTone()` creates `OscillatorNode` square waves at 13.333kHz, scheduled precisely via `AudioContext.currentTime`
+**Signal generation (`src/signal.ts` + `src/jjy.ts`):**
+- `generateSignal()` in `src/signal.ts` is a pure function that encodes a Date into the JJY 60-second protocol (BCD-encoded minutes, hours, day-of-year, year, weekday, parity bits, leap second, summer time flag), returning a 60-element duration array
+- `schedule()` in `src/jjy.ts` calls `generateSignal()` then schedules `OscillatorNode` square waves at 13.333kHz via `AudioContext.currentTime`
 - Signal is routed through an `AnalyserNode` (for the oscillogram) to `ctx.destination`
 - `start()` schedules the first minute and sets a 60-second interval; `stop()` tears down audio
 
