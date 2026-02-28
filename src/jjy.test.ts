@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateSignal, toJSTDate, MARKER_DURATION, BIT_HIGH_DURATION, BIT_LOW_DURATION } from './signal';
+import { generateSignal, decodeSignal, toJSTDate, MARKER_DURATION, BIT_HIGH_DURATION, BIT_LOW_DURATION } from './signal';
 
 // 2025-06-15 14:30 — Sunday, day-of-year 166
 const testDate = new Date(2025, 5, 15, 14, 30, 0, 0);
@@ -88,6 +88,72 @@ describe('toJSTDate', () => {
         expect(jst.getMinutes()).toBe(date.getMinutes());
         expect(jst.getSeconds()).toBe(date.getSeconds());
         expect(jst.getMilliseconds()).toBe(date.getMilliseconds());
+    });
+});
+
+describe('decodeSignal', () => {
+    it('decodes minute, hour, day, year, weekday from signal', () => {
+        const sig = generateSignal(testDate, false);
+        const decoded = decodeSignal(sig);
+        expect(decoded.minute).toBe(30);
+        expect(decoded.hour).toBe(14);
+        expect(decoded.dayOfYear).toBe(166);
+        expect(decoded.year).toBe(25);
+        expect(decoded.weekday).toBe(0); // Sunday
+    });
+
+    it('decodes different date correctly', () => {
+        const sig = generateSignal(new Date(2025, 0, 1, 23, 59, 0, 0), false);
+        const decoded = decodeSignal(sig);
+        expect(decoded.minute).toBe(59);
+        expect(decoded.hour).toBe(23);
+        expect(decoded.dayOfYear).toBe(1);
+        expect(decoded.year).toBe(25);
+        expect(decoded.weekday).toBe(3); // Wednesday
+    });
+});
+
+describe('decodeSignal roundtrip', () => {
+    const cases: { label: string; date: Date; minute: number; hour: number; day: number; year: number; weekday: number }[] = [
+        { label: 'midnight Jan 1 year 00', date: new Date(2000, 0, 1, 0, 0), minute: 0, hour: 0, day: 1, year: 0, weekday: 6 },
+        { label: 'max time Dec 31 year 99', date: new Date(2099, 11, 31, 23, 59), minute: 59, hour: 23, day: 365, year: 99, weekday: 4 },
+        { label: 'leap year day 366', date: new Date(2024, 11, 31, 12, 0), minute: 0, hour: 12, day: 366, year: 24, weekday: 2 },
+        { label: 'all weekdays Mon', date: new Date(2025, 5, 16, 1, 1), minute: 1, hour: 1, day: 167, year: 25, weekday: 1 },
+        { label: 'minute 0 hour 0', date: new Date(2025, 0, 5, 0, 0), minute: 0, hour: 0, day: 5, year: 25, weekday: 0 },
+    ];
+
+    for (const c of cases) {
+        it(`roundtrips ${c.label}`, () => {
+            const sig = generateSignal(c.date, false);
+            const d = decodeSignal(sig);
+            expect(d.minute).toBe(c.minute);
+            expect(d.hour).toBe(c.hour);
+            expect(d.dayOfYear).toBe(c.day);
+            expect(d.year).toBe(c.year);
+            expect(d.weekday).toBe(c.weekday);
+        });
+    }
+});
+
+describe('reserved bits are always 0', () => {
+    it('positions 34-35 and 55-58 are BIT_LOW_DURATION', () => {
+        const dates = [testDate, new Date(2024, 11, 31, 23, 59), new Date(2000, 0, 1, 0, 0)];
+        for (const date of dates) {
+            const sig = generateSignal(date, false);
+            for (const pos of [34, 35, 55, 56, 57, 58]) {
+                expect(sig[pos]).toBe(BIT_LOW_DURATION);
+            }
+        }
+    });
+});
+
+describe('summer time does not affect other decoded fields', () => {
+    it('decoded values match except SU2', () => {
+        const sigOff = generateSignal(testDate, false);
+        const sigOn = generateSignal(testDate, true);
+        expect(decodeSignal(sigOff)).toEqual(decodeSignal(sigOn));
+        expect(sigOff[40]).toBe(BIT_LOW_DURATION);
+        expect(sigOn[40]).toBe(BIT_HIGH_DURATION);
     });
 });
 

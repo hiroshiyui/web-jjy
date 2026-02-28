@@ -128,3 +128,31 @@ export function generateSignal(date: Date, summer_time: boolean): number[] {
 
     return array;
 }
+
+export interface DecodedSignal {
+    minute: number;
+    hour: number;
+    dayOfYear: number;
+    year: number;
+    weekday: number;
+}
+
+export function decodeSignal(signal: number[]): DecodedSignal {
+    function bitVal(i: number): number {
+        return signal[i] < 0.7 ? 1 : 0;
+    }
+    function bcd(positions: number[], weights: number[]): number {
+        let v = 0;
+        for (let i = 0; i < positions.length; i++) {
+            v += bitVal(positions[i]) * weights[i];
+        }
+        return v;
+    }
+    return {
+        minute: bcd([1,2,3,4,5,6,7,8], [40,20,10,16,8,4,2,1]),
+        hour: bcd([10,11,12,13,14,15,16,17,18], [80,40,20,10,16,8,4,2,1]),
+        dayOfYear: bcd([20,21,22,23,24,25,26,27,28,30,31,32,33], [800,400,200,100,160,80,40,20,10,8,4,2,1]),
+        year: bcd([41,42,43,44,45,46,47,48], [80,40,20,10,8,4,2,1]),
+        weekday: bcd([50,51,52], [4,2,1]),
+    };
+}

@@ -1,6 +1,6 @@
 import './fluent-setup';
 import { t, initI18n } from './i18n';
-import { generateSignal, toJSTDate } from './signal';
+import { generateSignal, decodeSignal, toJSTDate } from './signal';
 
 declare global {
     interface Window {
@@ -15,10 +15,9 @@ let analyser: AnalyserNode | null = null;
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 
-function schedule(date: Date, summer_time: boolean): number[] {
+function schedule(startMs: number, date: Date, summer_time: boolean): number[] {
     const now = Date.now();
-    const start = date.getTime();
-    const offset = (start - now) / 1000 + ctx!.currentTime;
+    const offset = (startMs - now) / 1000 + ctx!.currentTime;
     const sig = generateSignal(date, summer_time);
 
     for (let i = 0; i < sig.length; i++) {
@@ -62,7 +61,7 @@ function start(): void {
         t = next;
         delay += 60 * 1000;
     }
-    signal = schedule(adjustDate(new Date(t)), summer_time_input.checked);
+    signal = schedule(t, adjustDate(new Date(t)), summer_time_input.checked);
 
     // HACK: timeout発火前にキャンセルする
     intervalId = setTimeout(function() {
@@ -72,7 +71,7 @@ function start(): void {
 
     function interval(): void {
         t += 60 * 1000;
-        signal = schedule(adjustDate(new Date(t)), summer_time_input.checked);
+        signal = schedule(t, adjustDate(new Date(t)), summer_time_input.checked);
     }
 }
 
@@ -105,6 +104,15 @@ control_button.addEventListener('click', function() {
         start();
     }
 });
+
+function restart(): void {
+    if (play_flag) {
+        stop();
+        start();
+    }
+}
+jst_mode_input.addEventListener('change', restart);
+summer_time_input.addEventListener('change', restart);
 
 const nowtime = document.getElementById('time')!;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -227,6 +235,30 @@ function renderOscillogram(): void {
     oscCtx.fill();
 }
 
+const frameGroups: { start: number; end: number; label: string }[] = [
+    { start: 0, end: 0, label: 'M' },
+    { start: 1, end: 8, label: '分' },
+    { start: 9, end: 9, label: 'P1' },
+    { start: 10, end: 18, label: '時' },
+    { start: 19, end: 19, label: 'P2' },
+    { start: 20, end: 28, label: '通日' },
+    { start: 29, end: 29, label: 'P3' },
+    { start: 30, end: 33, label: '通日' },
+    { start: 34, end: 35, label: '0' },
+    { start: 36, end: 36, label: 'PA1' },
+    { start: 37, end: 37, label: 'PA2' },
+    { start: 38, end: 38, label: 'SU1' },
+    { start: 39, end: 39, label: 'P4' },
+    { start: 40, end: 40, label: 'SU2' },
+    { start: 41, end: 48, label: '年' },
+    { start: 49, end: 49, label: 'P5' },
+    { start: 50, end: 52, label: '曜' },
+    { start: 53, end: 54, label: 'LS' },
+    { start: 55, end: 58, label: '0' },
+    { start: 59, end: 59, label: 'P0' },
+];
+const WEEKDAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
+
 render();
 function render(): void {
     if (jst_mode_input.checked) {
@@ -255,8 +287,44 @@ function render(): void {
                 else if (signal[i] < 0.7) ctx2d.fillStyle = "#7F7F00";
                 else ctx2d.fillStyle = "#007F00";
             }
-            ctx2d.fillRect((i%30)*30, Math.floor(i/30)*100, 30 * signal[i], 80);
+            const barY = 16 + Math.floor(i / 30) * 110;
+            ctx2d.fillRect((i % 30) * 30, barY, 30 * signal[i], 80);
         }
+
+        // Group labels
+        ctx2d.font = '10px sans-serif';
+        ctx2d.fillStyle = '#aaa';
+        ctx2d.textAlign = 'center';
+        ctx2d.textBaseline = 'top';
+        for (const g of frameGroups) {
+            const row = Math.floor(g.start / 30);
+            const labelY = row === 0 ? 2 : 112;
+            const s = g.start % 30;
+            const e = g.end % 30;
+            const centerX = ((s + e) / 2) * 30 + 15;
+            ctx2d.fillText(g.label, centerX, labelY);
+        }
+
+        // Position indices
+        ctx2d.font = '8px monospace';
+        ctx2d.fillStyle = '#666';
+        for (let i = 0; i < 60; i++) {
+            const row = Math.floor(i / 30);
+            const indexY = row === 0 ? 98 : 208;
+            const x = (i % 30) * 30 + 15;
+            ctx2d.fillText(String(i), x, indexY);
+        }
+
+        // Decoded summary
+        const decoded = decodeSignal(signal);
+        const summary = `${String(decoded.hour).padStart(2, '0')}:${String(decoded.minute).padStart(2, '0')} ${decoded.dayOfYear}日 ${WEEKDAY_NAMES[decoded.weekday]}曜 ${2000 + decoded.year}年`;
+        ctx2d.font = '14px sans-serif';
+        ctx2d.fillStyle = '#ccc';
+        ctx2d.textAlign = 'left';
+        ctx2d.textBaseline = 'top';
+        ctx2d.fillText(summary, 4, 230);
+
+        ctx2d.textAlign = 'start';
     }
 
     renderOscillogram();
