@@ -18,13 +18,18 @@ Verify changes with `build` + `typecheck` + `test`.
 
 ## Key Constraints
 
-- **TypeScript target: ES2015** with `lib: ["ES2015", "DOM"]`. No ES2017+ APIs like `padStart` — use manual alternatives.
-- **No runtime dependencies.** The bundle is a self-contained IIFE loaded by `index.html`.
+- **TypeScript target: ES2017** with `lib: ["ES2017", "DOM", "DOM.Iterable"]`. Raised from ES2015 for FAST framework compatibility.
+- **Runtime dependency: `@fluentui/web-components` v2.x** (FAST-based). Bundled into `jjy.js` via esbuild. UI uses Fluent Web Components with dark theme + green accent. Styles in `styles.css`.
 - **`jjy.js` is gitignored.** The built output is not committed.
 
 ## Architecture
 
-**Entry point:** `index.html` loads `jjy.js` (bundled from `src/jjy.ts`).
+**Entry point:** `index.html` loads `styles.css` + `jjy.js` (bundled from `src/jjy.ts`).
+
+**Fluent UI setup (`src/fluent-setup.ts`):**
+- Registers Fluent Web Components (button, select, option, switch, accordion, accordion-item, card, divider)
+- Sets dark theme (`StandardLuminance.DarkMode`) with green accent color
+- Imported as first line in `src/jjy.ts`
 
 **Signal generation (`src/signal.ts` + `src/jjy.ts`):**
 - `generateSignal()` in `src/signal.ts` is a pure function that encodes a Date into the JJY 60-second protocol (BCD-encoded minutes, hours, day-of-year, year, weekday, parity bits, leap second, summer time flag), returning a 60-element duration array
