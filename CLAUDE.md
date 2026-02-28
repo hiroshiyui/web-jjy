@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Web JJY — a browser-based simulator of the Japanese standard time signal JJY. It generates a 13.333kHz square wave via Web Audio API; the 3rd harmonic (~40kHz) synchronizes radio-controlled clocks through speakers/headphones. Deployed via GitHub Pages on the `gh-pages` branch.
+Web JJY — a browser-based simulator of the Japanese standard time signal JJY. It generates a 13.333kHz square wave via Web Audio API; the 3rd harmonic (~40kHz) synchronizes radio-controlled clocks through speakers/headphones. Main branch: `main`.
 
 ## Build & Check Commands
 
