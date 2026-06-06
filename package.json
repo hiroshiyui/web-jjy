@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "run": "esbuild src/jjy.ts --bundle --outfile=jjy.js --format=iife --target=es2017 --serve --servedir=."
+    "run": "esbuild src/jjy.ts --bundle --outfile=jjy.js --format=iife --target=es2017 --serve --servedir=.",
+    "deploy": "npm run build && sudo rsync -av --delete index.html styles.css jjy.js /var/www/jjy.ghostsinthelab.org/"
   },
   "repository": {
     "type": "git",
